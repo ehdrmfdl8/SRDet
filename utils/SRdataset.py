@@ -3,7 +3,7 @@ import numpy as np
 import torch
 import imageio
 import torch.utils.data as data
-import common
+from utils import common
 from utils.torch_utils import torch_distributed_zero_first
 from torch.utils.data._utils import collate
 
