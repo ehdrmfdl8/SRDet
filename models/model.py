@@ -50,7 +50,8 @@ class Detect(nn.Module):
                 if self.grid[i].shape[2:4] != x[i].shape[2:4]:
                     self.grid[i] = self._make_grid(nx, ny).to(x[i].device)
 
-                y = x[i].sigmoid()
+                #y = x[i].sigmoid()
+                y = torch.sigmoid(x[i])
                 y[..., 0:2] = (y[..., 0:2] * 2. - 0.5 + self.grid[i]) * self.stride[i]  # xy
                 y[..., 2:4] = (y[..., 2:4] * 2) ** 2 * self.anchor_grid[i]  # wh
                 z.append(y.view(bs, -1, self.no))
@@ -132,7 +133,7 @@ class Model(nn.Module):
         if isinstance(m, Detect):
             s = 256  # 2x min stride
             m.stride = torch.tensor([s / x.shape[-2] for x in self.forward(torch.zeros(1, ch, s, s))])  # forward
-            m.anchors /= m.stride.view(-1, 1, 1)
+            m.anchors /= m.stride.view(-1, 1, 1) # if SR_mixed model -> * scale
             check_anchor_order(m)
             self.stride = m.stride
             self._initialize_biases()  # only run once
@@ -296,7 +297,7 @@ def parse_model(d, ch): # model_dict, input_channels(3)
 
 if __name__ == '__main__':
     parser = argparse.ArgumentParser()
-    parser.add_argument('--cfg', type=str, default='EDSR_yolov5l.yaml', help='model.yaml')
+    parser.add_argument('--cfg', type=str, default='yolov5l_csp_upsample_sr_chx2.yaml', help='model.yaml')
     parser.add_argument('--device', default='0', help='cuda device, i.e. 0 or 0,1,2,3 or cpu')
     #parser.add_argument('--scale', default='2', help='super resolution scale')
     opt = parser.parse_args()
