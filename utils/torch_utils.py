@@ -16,6 +16,7 @@ import torch.backends.cudnn as cudnn
 import torch.nn as nn
 import torch.nn.functional as F
 import torchvision
+from typing import *
 
 try:
     import thop  # for FLOPS computation
@@ -140,7 +141,21 @@ def intersect_dicts(da, db, exclude=()):
     # Dictionary intersection of matching keys and shapes, omitting 'exclude' keys, using da values
     return {k: v for k, v in da.items() if k in db and not any(x in k for x in exclude) and v.shape == db[k].shape}
 
+def transfer_state_dicts(da : Dict, db : Dict, tr_dict : Dict):
+    for k, v in da.items():
+        if any(x in k for x in tr_dict.keys()):
+            T = [x for x in tr_dict.keys() if x in k]
+            print(k, " -> " ,k.replace(T[0], tr_dict[T[0]]))
+            db[k.replace(T[0], tr_dict[T[0]])] = v
 
+def transfer_dicts(da : Dict, tr_dict : Dict):
+    db = {}
+    for k, v in da.items():
+        if any(x in k for x in tr_dict.keys()):
+            T = [x for x in tr_dict.keys() if x in k]
+            print(k, " -> " ,k.replace(T[0], tr_dict[T[0]]))
+            db[k.replace(T[0], tr_dict[T[0]])] = v
+    return db
 def initialize_weights(model):
     for m in model.modules():
         t = type(m)
